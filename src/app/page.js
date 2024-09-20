@@ -108,15 +108,15 @@ function App() {
                         onChange={handleDateChange}
                         aria-label="date selection"
                     >
-                      <ToggleButton value="twoDaysAgo" aria-label="two days ago">
-                        어저께
-                      </ToggleButton>
-                      <ToggleButton value="yesterday" aria-label="yesterday">
-                        어제
-                      </ToggleButton>
-                      <ToggleButton value="today" aria-label="today">
-                        오늘
-                      </ToggleButton>
+                      {/*<ToggleButton value="twoDaysAgo" aria-label="two days ago">*/}
+                      {/*  어저께*/}
+                      {/*</ToggleButton>*/}
+                      {/*<ToggleButton value="yesterday" aria-label="yesterday">*/}
+                      {/*  어제*/}
+                      {/*</ToggleButton>*/}
+                      {/*<ToggleButton value="today" aria-label="today">*/}
+                      {/*  오늘*/}
+                      {/*</ToggleButton>*/}
                     </ToggleButtonGroup>
                     <ToggleButtonGroup
                         value={selectedView}
