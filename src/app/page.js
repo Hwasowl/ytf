@@ -2,11 +2,12 @@
 import React, { useState, useEffect } from 'react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import { Box, AppBar, Toolbar, Typography, Button } from '@mui/material';
+import {Box, AppBar, Toolbar, Typography, Button, ToggleButtonGroup, ToggleButton} from '@mui/material';
 import Login from './components/Login';
 import NewsList from './components/NewsList';
 import axios from 'axios';
-import dummyNews from './dummyNews'; // 더미 뉴스 데이터
+import dummyNews from './dummyNews';
+import NewsTimeline from "@/app/components/NewsTimeline"; // 더미 뉴스 데이터
 
 const darkTheme = createTheme({
   palette: {
@@ -28,6 +29,8 @@ function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [news, setNews] = useState(dummyNews);
   const [token, setToken] = useState(null);
+  const [selectedDate, setSelectedDate] = useState('today');
+  const [selectedView, setSelectedView] = useState('list');
 
   useEffect(() => {
     checkLoginStatus();
@@ -77,6 +80,18 @@ function App() {
     setNews(dummyNews);
   };
 
+  const handleDateChange = (event, newDate) => {
+    if (newDate !== null) {
+      setSelectedDate(newDate);
+    }
+  };
+
+  const handleViewChange = (event, newView) => {
+    if (newView !== null) {
+      setSelectedView(newView);
+    }
+  };
+
   return (
       <ThemeProvider theme={darkTheme}>
         <CssBaseline />
@@ -84,16 +99,57 @@ function App() {
           <AppBar position="static" color="transparent" elevation={0}>
             <Toolbar>
               <Typography variant="h6" component="div" sx={{ flexGrow: 1, color: 'primary.main', fontWeight: 'bold' }}>
-                NEWSFLIX
               </Typography>
               {isLoggedIn && (
-                  <Button color="inherit" onClick={handleLogout}>로그아웃</Button>
+                  <>
+                    <ToggleButtonGroup
+                        value={selectedDate}
+                        exclusive
+                        onChange={handleDateChange}
+                        aria-label="date selection"
+                    >
+                      <ToggleButton value="twoDaysAgo" aria-label="two days ago">
+                        어저께
+                      </ToggleButton>
+                      <ToggleButton value="yesterday" aria-label="yesterday">
+                        어제
+                      </ToggleButton>
+                      <ToggleButton value="today" aria-label="today">
+                        오늘
+                      </ToggleButton>
+                    </ToggleButtonGroup>
+                    <ToggleButtonGroup
+                        value={selectedView}
+                        exclusive
+                        onChange={handleViewChange}
+                        aria-label="view selection"
+                        sx={{ ml: 2 }}
+                    >
+                      <ToggleButton value="list" aria-label="list view">
+                        리스트
+                      </ToggleButton>
+                      <ToggleButton value="timeline" aria-label="timeline view">
+                        타임라인
+                      </ToggleButton>
+                    </ToggleButtonGroup>
+                    <Button color="inherit" onClick={handleLogout} sx={{ ml: 2 }}>로그아웃</Button>
+                  </>
               )}
             </Toolbar>
           </AppBar>
           <Box sx={{ p: 3, position: 'relative' }}>
-            <NewsList news={news} />
-            {!isLoggedIn && <Login />}
+            {isLoggedIn ? (
+                selectedView === 'list' ? (
+                    <NewsList news={news} />
+                ) : (
+                    <NewsTimeline news={news} />
+                )
+            ) : (
+                <>
+                  <NewsList news={dummyNews} />
+                  <Login />
+                </>
+            )}
           </Box>
         </Box>
       </ThemeProvider>
