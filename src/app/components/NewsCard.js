@@ -47,16 +47,16 @@ const NewsCard = ({ item, onSummaryClick }) => (
             title={item.title}
         />
         <ContentWrapper>
-            <CardActionArea href={item.newsUrl} target="_blank" rel="noopener noreferrer">
             <StyledCardContent>
+            <CardActionArea href={item.newsUrl} target="_blank" rel="noopener noreferrer">
                 <TitleTypography gutterBottom variant="h6" component="div">
                     {item.title}
                 </TitleTypography>
                 <ContentTypography variant="body2" color="text.secondary">
                     {item.content.length > 100 ? `${item.content.substring(0, 100)}...` : item.content}
                 </ContentTypography>
-            </StyledCardContent>
             </CardActionArea>
+            </StyledCardContent>
             <Box sx={{ p: 2, pt: 0 }}>
                 <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
                     <Chip label={item.tag} size="small" color="primary" />
