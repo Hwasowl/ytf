@@ -4,6 +4,7 @@ import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { loadTossPayments } from "@tosspayments/tosspayments-sdk";
 import axios from 'axios';
 
+
 const clientKey = process.env.NEXT_PUBLIC_TOSS_PAYMENTS_CLIENT_KEY;
 const customerKey = process.env.NEXT_PUBLIC_TOSS_PAYMENTS_CUSTOMER_KEY;
 const gatewayUrl = process.env.NEXT_PUBLIC_GATEWAY_URL
@@ -111,22 +112,82 @@ const TossPaymentComponent = () => {
         }
     }, [widgets, initiatePayment, isLoading, ready]);
 
+    const styles = {
+        container: {
+            width: '100%',
+            maxWidth: '540px',
+            margin: '0 auto',
+            padding: '20px',
+            boxSizing: 'border-box',
+            backgroundColor: 'white',
+            borderRadius: '8px',
+            boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
+        },
+        header: {
+            backgroundColor: '#FFF8E7',
+            padding: '10px',
+            borderRadius: '8px 8px 0 0',
+            marginBottom: '20px',
+        },
+        headerText: {
+            color: '#FF6B00',
+            fontSize: '14px',
+            fontWeight: 'bold',
+        },
+        paymentMethod: {
+            width: '100%',
+            marginBottom: '20px',
+        },
+        agreement: {
+            width: '100%',
+            marginBottom: '20px',
+        },
+        button: {
+            width: '100%',
+            padding: '15px',
+            fontSize: '16px',
+            fontWeight: 'bold',
+            color: '#ffffff',
+            backgroundColor: '#4A90E2',
+            border: 'none',
+            borderRadius: '5px',
+            cursor: 'pointer',
+            transition: 'background-color 0.3s ease',
+        },
+        buttonDisabled: {
+            backgroundColor: '#cccccc',
+            cursor: 'not-allowed',
+        },
+        buttonHover: {
+            backgroundColor: '#357ABD',
+        },
+    };
+
     return (
-        <div className="wrapper w-100">
-            <div className="max-w-540 w-100">
-                <div id="payment-method" className="w-100"></div>
-                <div id="agreement" className="w-100"></div>
-                <div className="btn-wrapper w-100">
-                    <button
-                        id="payment-request-button"
-                        className="btn primary w-100"
-                        onClick={handlePayment}
-                        disabled={isLoading || !ready}
-                    >
-                        {isLoading ? '처리 중...' : '결제하기'}
-                    </button>
-                </div>
-            </div>
+        <div style={styles.container}>
+            <div style={styles.paymentMethod} id="payment-method"></div>
+            <div style={styles.agreement} id="agreement"></div>
+            <button
+                id="payment-request-button"
+                style={{
+                    ...styles.button,
+                    ...(isLoading || !ready ? styles.buttonDisabled : {}),
+                }}
+                onClick={handlePayment}
+                disabled={isLoading || !ready}
+                onMouseOver={(e) => {
+                    if (!isLoading && ready) {
+                        e.target.style.backgroundColor = styles.buttonHover.backgroundColor;
+                    }
+                }}
+                onMouseOut={(e) => {
+                    if (!isLoading && ready) {
+                        e.target.style.backgroundColor = styles.button.backgroundColor;
+                    }
+                }}
+            >
+                {isLoading ? '처리 중...' : '결제하기'}
+            </button>
         </div>
     );
 };
