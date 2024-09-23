@@ -1,14 +1,34 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import axios from 'axios';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { Box, Typography, Button, CircularProgress, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 
-const gatewayUrl = process.env.NEXT_PUBLIC_GATEWAY_URL
+const gatewayUrl = process.env.NEXT_PUBLIC_GATEWAY_URL;
+
+const theme = createTheme({
+    palette: {
+        mode: 'dark',
+        background: {
+            default: '#141414',
+            paper: '#141414',
+        },
+        primary: {
+            main: '#E50914',
+        },
+    },
+    typography: {
+        fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif',
+    },
+});
 
 export default function SuccessPage() {
     const searchParams = useSearchParams();
+    const router = useRouter();
     const [confirmationStatus, setConfirmationStatus] = useState('pending');
+    const [openDialog, setOpenDialog] = useState(true);
     const confirmationAttempted = useRef(false);
 
     useEffect(() => {
@@ -50,23 +70,58 @@ export default function SuccessPage() {
             }
         };
 
+        // router.push('/');
         confirmPayment();
-    }, []); // 빈 의존성 배열
+    }, []);
 
-    if (confirmationStatus === 'pending') {
-        return <div>결제 확인 중...</div>;
-    }
+    const handleClose = () => {
+        setOpenDialog(false);
+        router.push('/');
+    };
 
-    if (confirmationStatus === 'failed' || confirmationStatus === 'error') {
-        return <div>결제 확인 실패. <a href="/payment/fail">실패 페이지로 이동</a></div>;
-    }
+    const dialogContent = () => {
+        switch (confirmationStatus) {
+            case 'pending':
+                return (
+                    <Box display="flex" alignItems="center" justifyContent="center">
+                        <CircularProgress />
+                        <Typography variant="body1" sx={{ ml: 2 }}>결제 확인 중...</Typography>
+                    </Box>
+                );
+            case 'failed':
+            case 'error':
+                return (
+                    <>
+                        <Typography variant="body1">결제 확인 실패.</Typography>
+                        <Button color="primary" onClick={() => router.push('/payment/fail')}>
+                            실패 페이지로 이동
+                        </Button>
+                    </>
+                );
+            case 'success':
+                return (
+                    <>
+                        <Typography variant="h6" gutterBottom>결제 성공</Typography>
+                        <Typography variant="body1">주문 ID: {searchParams.get('orderId')}</Typography>
+                        <Typography variant="body1">결제 금액: {searchParams.get('amount')}원</Typography>
+                    </>
+                );
+        }
+    };
 
     return (
-        <div>
-            <h2>결제 성공</h2>
-            <p>주문 ID: {searchParams.get('orderId')}</p>
-            <p>결제 금액: {searchParams.get('amount')}원</p>
-            <a href="/">메인화면으로 돌아가기</a>
-        </div>
-);
+        <ThemeProvider theme={theme}>
+            <Dialog open={openDialog} onClose={handleClose}>
+                <DialogTitle>결제 상태</DialogTitle>
+                <DialogContent>
+                    {dialogContent()}
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleClose} color="primary">
+                        닫기
+                    </Button>
+                </DialogActions>
+            </Dialog>
+        </ThemeProvider>
+    );
 }

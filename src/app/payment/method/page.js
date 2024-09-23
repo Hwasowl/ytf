@@ -98,7 +98,7 @@ const TossPaymentComponent = () => {
             await widgets.requestPayment({
                 orderId: orderId,
                 orderName: "상품 주문",
-                successUrl: `${window.location.origin}/payment/success`,
+                successUrl: `${window.location.origin}/`,
                 failUrl: `${window.location.origin}/payment/fail`,
                 customerEmail: "customer@example.com",
                 customerName: "박정수",
