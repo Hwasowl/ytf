@@ -2,14 +2,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import {Box, AppBar, Toolbar, Typography, Button, ToggleButtonGroup, ToggleButton, Dialog, DialogTitle, DialogContent, DialogActions, CircularProgress} from '@mui/material';
+import { Box, AppBar, Toolbar, Typography, Button, ToggleButtonGroup, ToggleButton, Dialog, DialogContent, CircularProgress } from '@mui/material';
 import Login from './components/Login';
 import NewsList from './components/NewsList';
 import axios from 'axios';
 import dummyNews from './dummyNews';
 import NewsTimeline from "./components/NewsTimeline";
 import { useSearchParams } from 'next/navigation';
-import {Celebration} from "@mui/icons-material";
 
 const darkTheme = createTheme({
   palette: {
@@ -29,11 +28,11 @@ const darkTheme = createTheme({
 
 const gatewayUrl = process.env.NEXT_PUBLIC_GATEWAY_URL;
 
-
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [news, setNews] = useState(dummyNews);
   const [token, setToken] = useState(null);
+  const [isMember, setIsMember] = useState(false);
   const [selectedView, setSelectedView] = useState('list');
   const [openSuccessDialog, setOpenSuccessDialog] = useState(false);
   const [paymentDetails, setPaymentDetails] = useState(null);
@@ -43,8 +42,14 @@ function App() {
 
   useEffect(() => {
     checkLoginStatus();
-    checkPaymentStatus();
-  }, []);
+  }, []); // Only run on initial mount
+
+  useEffect(() => {
+    if (token) {
+      checkPaymentStatus();
+      checkMembershipStatus(token);
+    }
+  }, [token]); // Run when the token changes
 
   const checkLoginStatus = () => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -52,19 +57,16 @@ function App() {
     const storedToken = localStorage.getItem('jwtToken');
 
     if (tokenFromUrl) {
-      console.log("Token received from URL:", tokenFromUrl);
       localStorage.setItem('jwtToken', tokenFromUrl);
       setToken(tokenFromUrl);
       setIsLoggedIn(true);
       window.history.replaceState({}, document.title, window.location.pathname);
       fetchNews(tokenFromUrl);
     } else if (storedToken) {
-      console.log("Token found in localStorage");
       setToken(storedToken);
       setIsLoggedIn(true);
       fetchNews(storedToken);
     } else {
-      console.log("No token found");
       setIsLoggedIn(false);
     }
   };
@@ -81,15 +83,15 @@ function App() {
 
       confirmationAttempted.current = true;
       try {
-        const response = await axios.post(gatewayUrl + '/api/payments/confirm', {
+        const response = await axios.post(`${gatewayUrl}/api/payments/confirm`, {
           paymentKey,
           orderId,
-          amount: Number(amount)
+          amount: Number(amount),
         }, {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`,
-            'Content-Type': 'application/json'
-          }
+            'Content-Type': 'application/json',
+          },
         });
 
         if (response.status === 200) {
@@ -102,15 +104,26 @@ function App() {
         setConfirmationStatus('error');
       }
 
-      // Remove query parameters from URL
       window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  };
+
+  const checkMembershipStatus = async (token) => {
+    console.log("token", token);
+    try {
+      const response = await axios.get(`http://localhost:8070/api/membership/check?userId=1`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setIsMember(response.data);
+    } catch (error) {
+      console.error("Error checking membership status:", error);
     }
   };
 
   const fetchNews = async (token) => {
     try {
       const response = await axios.get('http://localhost:8070/api/news/yesterday', {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       setNews(response.data);
     } catch (error) {
@@ -197,6 +210,7 @@ function App() {
           <AppBar position="static" color="transparent" elevation={0}>
             <Toolbar>
               <Typography variant="h6" component="div" sx={{ flexGrow: 1, color: 'primary.main', fontWeight: 'bold' }}>
+                {/* Title or Logo */}
               </Typography>
               {isLoggedIn && (
                   <>
@@ -217,15 +231,19 @@ function App() {
                     <Button color="inherit" onClick={handleLogout} sx={{ ml: 2 }}>로그아웃</Button>
                   </>
               )}
-              <Button onClick={() => window.location.href = '/payment/method'}>멤버십 결제하기</Button>
+              {!isMember && isLoggedIn && (
+                  <Button onClick={() => window.location.href = '/payment/method'}>
+                    멤버십 결제하기
+                  </Button>
+              )}
             </Toolbar>
           </AppBar>
           <Box sx={{ p: 3, position: 'relative' }}>
             {isLoggedIn ? (
                 selectedView === 'list' ? (
-                    <NewsList news={news} />
+                    <NewsList news={news} isMember={isMember} />
                 ) : (
-                    <NewsTimeline news={news} />
+                    <NewsTimeline news={news} isMember={isMember} />
                 )
             ) : (
                 <>
@@ -238,7 +256,6 @@ function App() {
             <DialogContent>
               {dialogContent()}
             </DialogContent>
-            <DialogActions/>
           </Dialog>
         </Box>
       </ThemeProvider>
