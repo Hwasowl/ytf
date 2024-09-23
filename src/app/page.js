@@ -47,7 +47,6 @@ function App() {
   useEffect(() => {
     if (token) {
       checkPaymentStatus();
-      checkMembershipStatus(token);
     }
   }, [token]); // Run when the token changes
 
@@ -159,6 +158,18 @@ function App() {
     confirmationAttempted.current = false;
   };
 
+  const handleSummaryClick = async (item) => {
+    try {
+      const response = await axios.get(`http://localhost:8070/api/news/summary/${item.id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      return response.data.summary;
+    } catch (error) {
+      console.error('Failed to fetch summary:', error);
+      return '요약을 불러오는데 실패했습니다.';
+    }
+  };
+
   const dialogContent = () => {
     switch (confirmationStatus) {
       case 'pending':
@@ -246,13 +257,13 @@ function App() {
           <Box sx={{ p: 3, position: 'relative' }}>
             {isLoggedIn ? (
                 selectedView === 'list' ? (
-                    <NewsList news={news} isMember={isMember} />
+                    <NewsList news={news} isMember={isMember} onSummaryClick={handleSummaryClick} />
                 ) : (
-                    <NewsTimeline news={news} isMember={isMember} />
+                    <NewsTimeline news={news} isMember={isMember} onSummaryClick={handleSummaryClick} />
                 )
             ) : (
                 <>
-                  <NewsList news={dummyNews} />
+                  <NewsList news={dummyNews} isMember={false} onSummaryClick={handleSummaryClick} />
                   <Login />
                 </>
             )}
