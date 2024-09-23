@@ -67,7 +67,7 @@ const TossPaymentComponent = () => {
         try {
             setIsLoading(true);
             const response = await axios.post(gatewayUrl + '/api/payments/initiate', {
-                userId: "user123", // 실제 구현에서는 로그인한 사용자의 ID를 사용
+                userId: "1",
                 amount: amount.value
             }, {
                 headers: {

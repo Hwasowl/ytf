@@ -51,6 +51,11 @@ function App() {
     }
   }, [token]); // Run when the token changes
 
+  useEffect(() => {
+    checkMembershipStatus(token);
+  }, [confirmationStatus]);
+
+
   const checkLoginStatus = () => {
     const urlParams = new URLSearchParams(window.location.search);
     const tokenFromUrl = urlParams.get('token');
@@ -109,7 +114,7 @@ function App() {
   };
 
   const checkMembershipStatus = async (token) => {
-    console.log("token", token);
+    if (!token) return;
     try {
       const response = await axios.get(`http://localhost:8070/api/membership/check?userId=1`, {
         headers: { Authorization: `Bearer ${token}` },
